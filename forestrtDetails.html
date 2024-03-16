@@ -1,0 +1,222 @@
+{% extends 'layout.html' %}
+
+{% block title %}Forestry Pest And Disease Guide{% endblock %}
+{% block content %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ item.common_name }} Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container mt-4">
+
+        <h2 class="mb-4"><strong>Comment Name:</strong> {{ item.common_name }} </h2>
+        {% if session['role_type'] == 'admin' or session['role_type'] == 'staff' %}
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editInfoModal">
+            Edit Information
+        </button>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#editPhotosModal">Add Photos</button>
+        {% endif %}
+        <div class="mb-3">
+            <p><strong>Present In NZ:</strong> {% if item.present_in_NZ %}Yes{% else %}No{% endif %}</p>
+            <p><strong>Item Type:</strong> {% if item.item_type == 1 %}Pest{% else %}Disease{% endif %}</p>
+            <p><strong>Scientific Name:</strong> {{ item.scientific_name }}</p>
+            <p><strong>Key Characteristics:</strong> {{ item.key_characteristics }}</p>
+            <p><strong>Biology/Description:</strong> {{ item.biology_description }}</p>
+            <p><strong>Symptoms:</strong> {{ item.symptoms }}</p>
+        </div>
+        <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="data:image/jpeg;base64,{{ item.primary_image }}" class="card-img-top" alt="{{ item.common_name }}" style="height: 200px; object-fit: cover;">
+                    </div>
+                </div>
+                    </div><div class="row">
+        </div>
+
+        <!-- Existing Photo Management Modal -->
+<div class="modal fade" id="editPhotosModal" tabindex="-1" role="dialog" aria-labelledby="editPhotosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPhotosModalLabel">Manage Photos</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="managePhotosForm" action="{{ url_for('update_forestry_photos', forestry_id=item.forestry_id) }}" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <!-- Section for existing photos, already present -->
+                    <div class="existing-photos-section">
+                        {% for image in item.other_images %}
+                            <div class="existing-photo">
+                                <img src="data:image/*;base64,{{ image.image_data }}" style="width: 200px; height: 150px;">
+                                {% if session['role_type'] == 'admin' or session['role_type'] == 'staff' %}
+
+                                <button type="button" class="btn btn-danger delete-photo-btn" data-image-id="{{ image.id }}">Delete</button>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Section for adding new photos -->
+                    <div class="form-group">
+                        <label for="newPhotos">UploadNewPhotos</label>
+                        <input type="file" class="form-control-file" id="newPhotos" name="new_photos[]" multiple>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+        <!-- Edit Info Modal -->
+        <div class="modal fade" id="editInfoModal" tabindex="-1" role="dialog" aria-labelledby="editInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editInfoModalLabel">Edit Information</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ url_for('update_forestry_info') }}" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="forestry_id" value="{{ item.forestry_id }}">
+                    <!-- Common Name -->
+                    <div class="form-group">
+                        <label for="editCommonName">CommonName</label>
+                        <input type="text" class="form-control" id="editCommonName" name="common_name" value="{{ item.common_name }}" required>
+                    </div>
+                    <!-- Scientific Name -->
+                    <div class="form-group">
+                        <label for="scientificName">ScientificName</label>
+                        <input type="text" class="form-control" id="scientificName" name="scientific_name" value="{{ item.scientific_name }}" required>
+                    </div>
+                     <div class="form-group">
+            <label for="itemType">ItemType</label>
+            <select class="form-control" id="itemType" name="item_type">
+                <option value="1" {{ 'selected' if item.item_type == 1 else '' }}>Pest</option>
+                <option value="2" {{ 'selected' if item.item_type == 2 else '' }}>Disease</option>
+            </select>
+            </div>
+            <div class="form-group">
+                <label for="presentInNZ">Present_In_NZ</label>
+                <select class="form-control" id="presentInNZ" name="present_in_NZ">
+                    <option value="1" {{ 'selected' if item.present_in_NZ else '' }}>Yes</option>
+                    <option value="0" {{ 'selected' if not item.present_in_NZ else '' }}>No</option>
+                </select>
+            </div>
+                    <!-- Key Characteristics -->
+                    <div class="form-group">
+                        <label for="keyCharacteristics">KeyCharacteristics</label>
+                        <textarea class="form-control" id="keyCharacteristics" name="key_characteristics" required>{{ item.key_characteristics }}</textarea>
+                    </div>
+                    <!-- Biology/Description -->
+                    <div class="form-group">
+                        <label for="biologyDescription">Biology/Description</label>
+                        <textarea class="form-control" id="biologyDescription" name="biology_description" required>{{ item.biology_description }}</textarea>
+                    </div>
+                    <!-- Symptoms -->
+                    <div class="form-group">
+                        <label for="symptoms">Symptoms</label>
+                        <textarea class="form-control" id="symptoms" name="symptoms" required>{{ item.symptoms }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    </div>
+        <!-- Image gallery -->
+        <div class="row">
+            {% for image in item.other_images %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="data:image/jpeg;base64,{{ image.image_data }}" class="card-img-top" alt="{{ item.common_name }}" style="height: 200px; object-fit: cover;">
+                    </div>
+                    {% if session['role_type'] in ['admin', 'staff'] %}
+                    <div class="card-body">
+                        <button type="button" class="btn btn-danger delete-photo-btn" data-image-id="{{ image.id }}" data-url="{{ url_for('delete_forestry_photo', image_id=image.id) }}">Delete</button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if loop.index % 3 == 0 %}
+                    </div><div class="row">
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+
+        {% with messages = get_flashed_messages(with_categories = true) %}
+        {% if messages %}
+        var messageType = "{{ messages[0][0] }}";
+        var message = "{{ messages[0][1] }}";
+        var modalBody = $("#messageModal .modal-body");
+
+        modalBody.removeClass('text-success text-danger');
+
+        if (messageType === 'error') {
+            modalBody.addClass('text-danger');
+        } else if (messageType === 'success') {
+            modalBody.addClass('text-success');
+        }
+        modalBody.text(message);
+        $("#messageModal").modal('show');
+        // close modal after 2 seconds
+        setTimeout(function () {
+            $("#messageModal").modal('hide');
+        }, 2000);
+        {% endif %}
+        {% endwith %}
+
+
+
+       $('.delete-photo-btn').click(function() {
+    const imageId = $(this).data('image-id');
+    const url = $(this).data('url');
+    console.log(imageId);
+
+    fetch('/staff/deletePhoto/' + imageId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+    }).then(response => {
+    if (response.ok) {
+        window.location.reload();
+    } else {
+        console.error("Failed to delete the photo.");
+    }
+})
+.catch(error => {
+    console.error("Error deleting photo: ", error);
+});
+
+});
+});
+
+
+
+</script>
+</body>
+</html>
+{% endblock %}

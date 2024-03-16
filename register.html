@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
+</head>
+<body>
+<div class="register">
+    <h1>Register</h1>
+    <div class="links">
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('register') }}" class="active" >Register</a>
+    </div>
+    <form action="{{ url_for('register') }}" method="post" autocomplete="off">
+        <label for="username"><i class="fas fa-user"></i></label>
+        <input type="text" name="username" id="username" placeholder="Username" required>
+        <label for="password"><i class="fas fa-lock"></i></label>
+        <input type="password" name="password" id="password" placeholder="Password" required>
+        <label for="email"><i class="fas fa-envelope"></i></label>
+        <input type="email" name="email" id="email" placeholder="Email" required>
+        <label for="first_name"><i class="fas fa-user"></i></label>
+        <input type="text" name="first_name" id="first_name" placeholder="First Name" required>
+        <label for="last_name"><i class="fas fa-user"></i></label>
+        <input type="text" name="last_name" id="last_name" placeholder="Last Name" required>
+        <label for="address"><i class="fas fa-map-marker-alt"></i></label>
+        <input type="text" name="address" id="address" placeholder="Address" required>
+        <label for="phone_number"><i class="fas fa-phone"></i></label>
+        <input type="tel" name="phone_number" id="phone_number" placeholder="Phone Number" required>
+        <label for="date_joined"><i class="fas fa-calendar-alt"></i></label>
+        <input type="date" name="date_joined" id="date_joined" placeholder="Date Joined" lang="en" required>
+
+        <div class="msg">{{ msg }}</div>
+        <input type="submit" value="Register">
+    </form>
+</div>
+</body>
+</html>

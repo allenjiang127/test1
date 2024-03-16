@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
+</head>
+<body class="loggedin">
+<nav class="navtop">
+    <div>
+        <h1>FORESTRY PEST AND DISEASE BIOSECURITY GUIDE</h1>
+        <a href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
+        <a href="{{ url_for('get_forestry_guide') }}"><i class="fas  fa-info-circle"></i>Forestry Guide</a>
+        {% if session['role_type'] in ['admin', 'staff'] %}
+        <a href="{{url_for('get_user_accounts')}}"><i class="fas fa-user-circle"></i>User Account</a>
+        {% endif %}
+        <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i>Profile</a>
+        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
+    </div>
+</nav>
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

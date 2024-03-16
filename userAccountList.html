@@ -1,0 +1,469 @@
+{% extends 'layout.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div id="popup-message" style="display: none;"></div>
+
+<div class="container">
+
+    <h2>User Account List</h2>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-add" data-role="forester">Add
+        forester
+    </button>
+        {% if session['role_type'] == 'admin' %}
+
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-add" data-role="staff">add
+        staff
+    </button>
+        {% endif %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th>userName</th>
+            <th>Role</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user_account in user_profiles %}
+        <tr>
+            <td>{{user_account.username}}</td>
+            <td>{{user_account.role_type}}</td>
+            <td>{{user_account.first_name}}</td>
+            <td>{{user_account.last_name}}</td>
+            <td>
+                <button type="button" class="btn btn-primary edit-btn"
+                        data-id="{{ user_account.id }}"
+                        data-username="{{ user_account.username }}"
+                        data-role="{{ user_account.role_type }}"
+                        data-first-name="{{ user_account.first_name }}"
+                        data-last-name="{{ user_account.last_name }}"
+                        data-email="{{ user_account.email | default('') }}"
+                        data-phone_number="{{ user_account.phone_number | default('') }}"
+                        data-date_joined="{{ user_account.date_joined | default('') }}"
+                        data-address="{{ user_account.address | default('') }}"
+                        data-hire_date="{{ user_account.hire_date | default('') }}"
+                        data-work_phone_number={{user_account.work_phone_number}}
+                        data-position="{{ user_account.position | default('') }}"
+                        data-department="{{ user_account.department | default('') }}"
+                        data-status="{{ user_account.status | default('active') }}"
+                        data-url="{{url_for('admin_update_user')}}">
+                    edit
+                </button>
+                <button type="button" class="btn btn-primary btn-sm change-password-btn" data-username="{{ user_account.username }}" data-userid="{{ user_account.id }}">Change Password</button>
+
+                <form action="{{ url_for('admin_delete_user', account_id=user_account.id) }}" method="POST"
+                      style="display: inline;">
+                    <input type="hidden" name="account_id" value="{{ user_account.id }}">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+
+    <!-- Add Modal -->
+    <div class="modal fade" id="modal-add" tabindex="-1" role="dialog" aria-labelledby="modalAddLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAddLabel">Add</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-form" action="{{ url_for('admin_add_user') }}" method="post">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" pattern="[a-zA-Z0-9]+"
+                                   title="Username must contain only letters and numbers" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-first-name">FirstName</label>
+                            <input type="text" class="form-control" id="add-first-name" name="first_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">LastName</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   pattern="(?=.*\d)(?=.*[a-z]).{8,}|(?=.*\d)(?=.*[A-Z]).{8,}|(?=.*[a-z])(?=.*[A-Z]).{8,}|(?=.*\d)(?=.*[^a-zA-Z\d\s]).{8,}|(?=.*[a-z])(?=.*[^a-zA-Z\d\s]).{8,}|(?=.*[A-Z])(?=.*[^a-zA-Z\d\s]).{8,}"
+                                   title="Password must contain at least two types of characters (uppercase, lowercase, number, or special character) and be at least 8 characters long"
+                                   required>
+                        </div>
+                        <div class="form-group" id="email-field">
+                            <label for="add-email">Email</label>
+                            <input type="email" class="form-control" id="add-email" name="email">
+                        </div>
+                        <div class="form-group">
+                            <label>Status:</label><br>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="status" id="statusActive"
+                                       value="active" checked>
+                                <label class="form-check-label" for="statusActive">Active</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="status" id="statusInactive"
+                                       value="inactive">
+                                <label class="form-check-label" for="statusInactive">Inactive</label>
+                            </div>
+                        </div>
+                        <!-- Additional form fields will be dynamically added here based on the role -->
+                        <div class="form-group" id="role-specific-fields">
+                            <!-- This div will be dynamically populated based on the selected role -->
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="changePasswordForm" action="{{ url_for('admin_change_password') }}" method="post">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="changePasswordUsername">Username</label>
+            <input type="text" class="form-control" id="changePasswordUsername" name="username" readonly>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">NewPassword</label>
+            <input type="password" class="form-control" id="newPassword" name="password"
+                   pattern="(?=.*\d)(?=.*[a-z]).{8,}|(?=.*\d)(?=.*[A-Z]).{8,}|(?=.*[a-z])(?=.*[A-Z]).{8,}|(?=.*\d)(?=.*[^a-zA-Z\d\s]).{8,}|(?=.*[a-z])(?=.*[^a-zA-Z\d\s]).{8,}|(?=.*[A-Z])(?=.*[^a-zA-Z\d\s]).{8,}"
+                                   title="Password must contain at least two types of characters (uppercase, lowercase, number, or special character) and be at least 8 characters long"
+                                   required>
+          </div>
+          <input type="hidden" id="userId" name="account_id">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+    <!--    edit Modal-->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">edit user</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal -->
+    <div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="messageModalLabel">Message</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- The message will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            {% with messages = get_flashed_messages(with_categories = true) %}
+            {% if messages %}
+            var messageType = "{{ messages[0][0] }}";
+            var message = "{{ messages[0][1] }}";
+            var modalBody = $("#messageModal .modal-body");
+
+            modalBody.removeClass('text-success text-danger');
+
+            if (messageType === 'error') {
+                modalBody.addClass('text-danger');
+            } else if (messageType === 'success') {
+                modalBody.addClass('text-success');
+            }
+            modalBody.text(message);
+            $("#messageModal").modal('show');
+            // close modal after 2 seconds
+            setTimeout(function () {
+                $("#messageModal").modal('hide');
+            }, 2000);
+            {% endif %}
+            {% endwith %}
+
+
+            // edit password
+              $('.change-password-btn').click(function() {
+            var username = $(this).data('username');
+            var userId = $(this).data('userid');
+
+            $('#changePasswordModal #changePasswordUsername').val(username);
+            $('#changePasswordModal #userId').val(userId);
+
+            $('#changePasswordModal').modal('show');
+            });
+
+
+            var modalBody = $('#editModal .modal-body');
+            $('.edit-btn').on('click', function () {
+                // get button data
+                var user_account = {
+                    id: $(this).data('id'),
+                    username: $(this).data('username'),
+                    role: $(this).data('role'),
+                    first_name: $(this).data('first-name'),
+                    last_name: $(this).data('last-name'),
+                    email: $(this).data('email'),
+                    phone: $(this).data('phone_number'),
+                    position: $(this).data('position'),
+                    department: $(this).data('department'),
+                    status: $(this).data('status'),
+                    address: $(this).data('address'),
+                    date_joined: $(this).data('date_joined'),
+                    work_phone_number: $(this).data('work_phone_number'),
+                    hire_date: $(this).data('hire_date'),
+                    url: $(this).data('url')
+
+                };
+                console.log(user_account.url)
+                console.log(user_account.status)
+                var formHtml = ``;
+                if (user_account.role === 'staff' || user_account.role === 'admin') {
+                    formHtml = ` <form id="staff-edit-form" method="post" action="${user_account.url}">
+                            <!-- Staff edit form fields -->
+                            <div class="form-group">
+                                <label for="staff-username">Username</label>
+                                <input type="text" class="form-control" id="staff-username" name="username"
+                                       value="${user_account.username}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-first-name">FirstName</label>
+                                <input type="text" class="form-control" id="staff-first-name" name="first_name"
+                                       value="${user_account.first_name}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-last-name">LastName</label>
+                                <input type="text" class="form-control" id="staff-last-name" name="last_name"
+                                       value="${user_account.last_name}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-email">Email</label>
+                                <input type="email" class="form-control" id="staff-email" name="email"
+                                       value="${user_account.email}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Status:</label><br>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="status" id="statusActive"
+                                           value="active" ${user_account.status === 'active' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="statusActive">Active</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="status" id="statusInactive"
+                                           value="inactive" ${user_account.status === 'inactive' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="statusInactive">Inactive</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="work_phone_number">WorkPhoneNumber</label>
+                                <input type="tel" class="form-control" id="work_phone_number" name="work_phone_number"
+                                       value="${user_account.work_phone_number}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="hire_date">HireDate</label>
+                                <input type="date" class="form-control date-picker" id="hire_date" name="hire_date"
+                                       lang="en" value="${user_account.hire_date}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="position">Position</label>
+                                <input type="text" class="form-control" id="position" name="position"
+                                       value="${user_account.position}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="department">Department</label>
+                                <input type="text" class="form-control" id="department" name="department"
+                                       value="${user_account.department}" required>
+                            </div>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">close</button>
+                            <button type="submit" class="btn btn-primary">saveChanges</button>
+                        </form>`;
+                } else if (user_account.role === 'forester') {
+                    formHtml = ` <form id="forester-edit-form" method="post" action="${user_account.url}">
+                            <div class="form-group">
+                                <label for="forester-username">Username</label>
+                                <input type="text" class="form-control" id="forester-username" name="username"
+                                       value="${user_account.username}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="forester-first-name">FirstName</label>
+                                <input type="text" class="form-control" id="forester-first-name" name="first_name"
+                                       value="${user_account.first_name}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="forester-last-name">LastName</label>
+                                <input type="text" class="form-control" id="forester-last-name" name="last_name"
+                                       value="${user_account.last_name}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="forester-email">Email</label>
+                                <input type="email" class="form-control" id="forester-email" name="email"
+                                       value="${user_account.email}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Status:</label><br>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="status" id="statusActive"
+                                           value="active" checked>
+                                    <label class="form-check-label" for="statusActive">Active</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="status" id="statusInactive"
+                                           value="inactive">
+                                    <label class="form-check-label" for="statusInactive">Inactive</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <input type="text" class="form-control" id="address" name="address"
+                                       value="${user_account.address}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone_number">PhoneNumber</label>
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number"
+                                       value="${user_account.phone_number}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="date_joined">DateJoined</label>
+                                <input type="date" class="form-control date-picker" id="date_joined" name="date_joined"
+                                       lang="en" value="${user_account.date_joined}" required>
+                            </div>
+                             <button type="button" class="btn btn-secondary" data-dismiss="modal">close</button>
+                            <button type="submit" class="btn btn-primary">saveChanges</button>
+                        </form>`
+                }
+
+                modalBody.html(formHtml);
+                $('#editModal').modal('show');
+            });
+
+
+            $('button[data-target="#modal-add"]').click(function () {
+                var role = $(this).data('role'); // Determines which button was clicked
+                console.log(role)
+                // Clear any previously added role-specific fields
+                $('#role-specific-fields').empty();
+
+                if (role === 'staff') {
+                    // Adding staff-specific fields
+                    $('#role-specific-fields').append(`
+                <div class="form-group">
+                    <label for="work_phone_number">WorkPhoneNumber</label>
+                    <input type="tel" class="form-control" id="work_phone_number" name="work_phone_number" required>
+                </div>
+                <div class="form-group">
+                    <label for="hire_date">HireDate</label>
+                    <input type="date" class="form-control date-picker" id="hire_date" name="hire_date" lang="en" required>
+                </div>
+                <div class="form-group">
+                    <label for="position">Position</label>
+                    <input type="text" class="form-control" id="position" name="position" required>
+                </div>
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <input type="text" class="form-control" id="department" name="department" required>
+                </div>
+            `);
+                } else if (role === 'forester') {
+                    // Adding forester-specific fields
+                    $('#role-specific-fields').append(`
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" class="form-control" id="address" name="address" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone_number">PhoneNumber</label>
+                    <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                </div>
+                <div class="form-group">
+                    <label for="date_joined">DateJoined</label>
+                    <input type="date" class="form-control date-picker" id="date_joined" name="date_joined" lang="en" required>
+                </div>
+            `);
+                }
+                $('#role-specific-fields').append(`<input type="hidden" id="role_type" name="role_type" value="${role}">`)
+
+            })
+            // Update modal title based on the role
+            $('#modalAddLabel').text('Add ' + role.charAt(0).toUpperCase() + role.slice(1));
+            $('.delete-form').submit(function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('action');
+                var method = form.attr('method');
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: form.serialize(),
+                    success: function (response) {
+                        // Display success message
+                        $('#delete-msg').html('<div class="alert alert-success" role="alert">' + response.msg + '</div>');
+                        // Reload page or update UI as needed
+                    },
+                    error: function (xhr, status, error) {
+                        // Display error message
+                        $('#delete-msg').html('<div class="alert alert-danger" role="alert">Error: ' + xhr.responseText + '</div>');
+                    }
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>
+{% endblock %}
